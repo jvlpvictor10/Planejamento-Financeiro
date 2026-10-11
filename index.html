@@ -902,6 +902,54 @@
       color: var(--text-muted);
       font-size: 0.9rem;
     }
+
+    .badge-pending {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    .btn-settle-quick {
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-settle-quick:hover {
+      background: #dcfce7;
+      border-color: #86efac;
+    }
+
+    .tx-action-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 4px;
+      margin-left: 4px;
+      border-radius: 4px;
+      transition: color 0.2s;
+    }
+
+    .tx-action-btn:hover {
+      color: var(--blue-primary);
+    }
+
+    .tx-delete-btn:hover {
+      color: var(--red-primary);
+    }
+
   </style>
 </head>
 <body>
@@ -933,7 +981,15 @@
         </div>
         <div class="form-group">
           <label for="login-password">Senha</label>
-          <input type="password" id="login-password" class="form-control" placeholder="Digite sua senha" required>
+          <div style="position:relative; display:flex; align-items:center;">
+            <input type="password" id="login-password" class="form-control" placeholder="Digite sua senha" required style="padding-right:40px; width:100%;">
+            <button type="button" onclick="togglePasswordVisibility('login-password', 'eye-icon-login')" style="position:absolute; right:10px; background:none; border:none; color:#64748b; cursor:pointer; padding:4px;" title="Ver ou ocultar senha">
+              <svg id="eye-icon-login" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
         </div>
         <button type="submit" class="btn" style="background:var(--blue-primary); color:white; padding:12px; font-size:0.95rem; margin-top:6px;">
           Entrar no Meu App
@@ -955,7 +1011,15 @@
         </div>
         <div class="form-group">
           <label for="reg-password">Crie uma Senha</label>
-          <input type="password" id="reg-password" class="form-control" placeholder="Mínimo 4 caracteres" minlength="4" required>
+          <div style="position:relative; display:flex; align-items:center;">
+            <input type="password" id="reg-password" class="form-control" placeholder="Mínimo 4 caracteres" minlength="4" required style="padding-right:40px; width:100%;">
+            <button type="button" onclick="togglePasswordVisibility('reg-password', 'eye-icon-reg')" style="position:absolute; right:10px; background:none; border:none; color:#64748b; cursor:pointer; padding:4px;" title="Ver ou ocultar senha">
+              <svg id="eye-icon-reg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="form-group">
           <label for="reg-initial-balance">Saldo Inicial da Conta (R$)</label>
@@ -1347,6 +1411,80 @@
     </nav>
   </div>
 
+
+  <!-- MODAL DE EDIÇÃO DE TRANSAÇÃO -->
+  <div class="modal-overlay" id="modal-edit-tx">
+    <div class="modal-card">
+      <div class="modal-header" style="background:#eff6ff; color:#1e40af;">
+        <div class="modal-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          Editar Transação
+        </div>
+        <button class="modal-close" onclick="closeModals()">&times;</button>
+      </div>
+      <form id="form-edit-tx" onsubmit="handleEditSubmit(event)">
+        <input type="hidden" id="edit-tx-id">
+        <input type="hidden" id="edit-tx-type">
+        <div class="modal-body">
+          <div class="form-group" id="edit-cat-group">
+            <label for="edit-tx-category">Categoria</label>
+            <select id="edit-tx-category" class="form-control" required>
+              <option value="Custos fixos">Custos fixos</option>
+              <option value="Compras">Compras</option>
+              <option value="Desenvolvimento">Desenvolvimento</option>
+              <option value="Alimentação">Alimentação</option>
+              <option value="Investimentos">Investimentos</option>
+            </select>
+          </div>
+
+          <div class="form-group" id="edit-subtype-group">
+            <label for="edit-tx-subtype">Origem da Receita</label>
+            <select id="edit-tx-subtype" class="form-control">
+              <option value="Serviço">Serviço / Salário</option>
+              <option value="Venda">Venda</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-tx-desc">Descrição</label>
+            <input type="text" id="edit-tx-desc" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-tx-amount">Valor (R$)</label>
+            <input type="number" step="0.01" min="0.01" id="edit-tx-amount" class="form-control" required>
+          </div>
+
+          <div class="form-group">
+            <label for="edit-tx-date">Data</label>
+            <input type="date" id="edit-tx-date" class="form-control" required>
+          </div>
+
+          <!-- Status de Efetivação na Edição -->
+          <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="edit-tx-is-settled">
+              <label for="edit-tx-is-settled" style="font-size:0.85rem; font-weight:600; cursor:pointer;" id="edit-settled-label">
+                Efetivado no saldo da conta
+              </label>
+            </div>
+            <small style="color:var(--text-muted); font-size:0.75rem; margin-top:4px; display:block;">
+              Marque se o dinheiro já foi efetivamente debitado ou creditado do seu saldo em conta.
+            </small>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModals()">Cancelar</button>
+          <button type="submit" class="btn" style="background:#2563eb; color:white;">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- MODAL RECEITA (VERDE) -->
   <div class="modal-overlay" id="modal-income">
     <div class="modal-card">
@@ -1402,6 +1540,20 @@
           <div class="form-group">
             <label for="income-date">Data do Recebimento</label>
             <input type="date" id="income-date" class="form-control" required>
+          </div>
+
+          <!-- Opção de Efetivação no Saldo -->
+          <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="income-is-settled" checked onchange="toggleSettledHint('income')">
+              <label for="income-is-settled" style="font-size:0.85rem; font-weight:600; cursor:pointer;">
+                Já caiu na conta (Adicionar ao saldo agora)
+              </label>
+            </div>
+            <small id="income-settled-hint" style="color:var(--text-muted); font-size:0.75rem; margin-top:4px; display:block;">
+              Marcado: O valor entra imediatamente no saldo em conta.<br>
+              Desmarcado: Fica apenas registrado como "A receber", sem alterar seu saldo atual até você efetivar.
+            </small>
           </div>
 
           <div id="income-recurrence-options" style="background:#f0fdf4; padding:12px; border-radius:8px; border:1px solid #bbf7d0;">
@@ -1468,6 +1620,20 @@
             <input type="date" id="expense-date" class="form-control" required>
           </div>
 
+          <!-- Opção de Efetivação no Saldo -->
+          <div style="background:#f8fafc; padding:12px; border-radius:8px; border:1px solid #e2e8f0; margin-bottom:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" id="expense-is-settled" checked onchange="toggleSettledHint('expense')">
+              <label for="expense-is-settled" style="font-size:0.85rem; font-weight:600; cursor:pointer;">
+                Já foi debitado / pago (Debitar do saldo agora)
+              </label>
+            </div>
+            <small id="expense-settled-hint" style="color:var(--text-muted); font-size:0.75rem; margin-top:4px; display:block;">
+              Marcado: O valor é subtraído imediatamente do saldo em conta.<br>
+              Desmarcado: Fica apenas registrado como "Previsto / A pagar", sem alterar seu saldo atual até você efetivar.
+            </small>
+          </div>
+
           <div id="fixed-cost-recurrence-options" style="background:#f1f5f9; padding:12px; border-radius:8px; border:1px solid #cbd5e1;" class="hidden">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
               <input type="checkbox" id="expense-is-recurrent" onchange="toggleRecurrenceDayInput()">
@@ -1510,6 +1676,51 @@
             <label for="cfg-initial-balance">Ajuste Manual do Meu Saldo Disponível (R$)</label>
             <input type="number" step="0.01" id="cfg-initial-balance" class="form-control" required>
             <small style="color:var(--text-muted); font-size:0.75rem;">Altera o saldo em conta atual do seu perfil.</small>
+          </div>
+
+                    <div style="border-top:1px solid var(--border-color); padding-top:14px; margin-top:12px;">
+            <div style="font-size:0.85rem; font-weight:700; color:var(--text-main); margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+              Segurança & Senha da Conta
+            </div>
+
+            <!-- Ver Senha Atual -->
+            <div class="form-group" style="margin-bottom:10px;">
+              <label for="cfg-current-password">Sua Senha Atual</label>
+              <div style="position:relative; display:flex; align-items:center;">
+                <input type="password" id="cfg-current-password" class="form-control" readonly style="padding-right:40px; background:#f8fafc; font-weight:600;">
+                <button type="button" onclick="togglePasswordVisibility('cfg-current-password', 'eye-icon-cfg')" style="position:absolute; right:10px; background:none; border:none; color:#64748b; cursor:pointer; padding:4px;" title="Ver ou ocultar senha">
+                  <svg id="eye-icon-cfg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+              <small style="color:var(--text-muted); font-size:0.75rem;">Clique no olho para revelar a senha da sua conta.</small>
+            </div>
+
+            <!-- Alterar Senha -->
+            <div style="background:#f1f5f9; padding:12px; border-radius:8px; border:1px solid #cbd5e1; margin-top:8px;">
+              <div style="font-size:0.82rem; font-weight:600; color:var(--text-main); margin-bottom:8px;">Deseja alterar sua senha?</div>
+              <div class="form-group" style="margin-bottom:8px;">
+                <label for="cfg-new-password">Nova Senha</label>
+                <div style="position:relative; display:flex; align-items:center;">
+                  <input type="password" id="cfg-new-password" class="form-control" placeholder="Digite a nova senha (mín. 4 caracteres)" minlength="4" style="padding-right:40px;">
+                  <button type="button" onclick="togglePasswordVisibility('cfg-new-password', 'eye-icon-new-pwd')" style="position:absolute; right:10px; background:none; border:none; color:#64748b; cursor:pointer; padding:4px;" title="Ver ou ocultar nova senha">
+                    <svg id="eye-icon-new-pwd" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary" style="width:100%; font-size:0.82rem; font-weight:600; background:white;" onclick="handleChangePassword()">
+                Salvar Nova Senha
+              </button>
+            </div>
           </div>
 
           <div style="border-top:1px solid var(--border-color); padding-top:12px; margin-top:8px;">
@@ -1593,6 +1804,26 @@
     function showAuthScreen() {
       document.getElementById('auth-screen').classList.remove('hidden');
       document.getElementById('main-app-screen').classList.remove('active');
+    }
+
+    function togglePasswordVisibility(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (!input || !icon) return;
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.innerHTML = `
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        `;
+      } else {
+        input.type = 'password';
+        icon.innerHTML = `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        `;
+      }
     }
 
     function switchAuthTab(tab) {
@@ -1988,9 +2219,10 @@
       const bgLight = isIncome ? 'var(--green-light)' : '#f1f5f9';
       const sign = isIncome ? '+' : '-';
       const badgeText = isIncome ? (t.subType || 'Receita') : t.category;
+      const isSettled = t.isSettled !== false; // Padrão é true caso não exista
 
       return `
-        <div class="tx-item">
+        <div class="tx-item" style="${!isSettled ? 'border-left: 4px solid #f59e0b;' : ''}">
           <div class="tx-left">
             <div class="tx-icon-box" style="background:${bgLight}; color:${color};">
               ${isIncome ? `
@@ -2010,18 +2242,34 @@
               <div class="tx-meta">
                 <span class="tx-tag" style="background:${bgLight}; color:${color};">${badgeText}</span>
                 <span>• ${formatDateBR(t.date)}</span>
+                ${!isSettled ? `
+                  <span class="badge-pending">${isIncome ? 'A receber' : 'A pagar'}</span>
+                  <button type="button" class="btn-settle-quick" onclick="quickSettleTransaction('${t.id}')" title="Marcar como efetivado no saldo">
+                    ✓ Efetivar no Saldo
+                  </button>
+                ` : ''}
                 ${t.isAuto ? '<span style="color:#2563eb; font-weight:600;">[Automático]</span>' : ''}
               </div>
             </div>
           </div>
           <div class="tx-right">
-            <div class="tx-amount ${isIncome ? 'income' : 'expense'}">${sign} ${formatBRL(t.amount)}</div>
-            <button class="tx-delete-btn" onclick="deleteTransaction('${t.id}')" title="Excluir Transação">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-              </svg>
-            </button>
+            <div class="tx-amount ${isIncome ? 'income' : 'expense'}" style="${!isSettled ? 'opacity:0.75;' : ''}">
+              ${sign} ${formatBRL(t.amount)}
+            </div>
+            <div style="display:flex; justify-content:flex-end; align-items:center; margin-top:2px;">
+              <button class="tx-action-btn" onclick="openEditModal('${t.id}')" title="Editar Transação">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button class="tx-delete-btn" onclick="deleteTransaction('${t.id}')" title="Excluir Transação">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       `;
@@ -2233,6 +2481,121 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+
+    function toggleSettledHint(type) {
+      const isChecked = document.getElementById(type + '-is-settled').checked;
+      const hint = document.getElementById(type + '-settled-hint');
+      if (type === 'income') {
+        hint.innerHTML = isChecked 
+          ? "Marcado: O valor entra imediatamente no saldo em conta." 
+          : "Desmarcado: Fica apenas registrado como 'A receber', sem alterar seu saldo atual até você efetivar.";
+      } else {
+        hint.innerHTML = isChecked 
+          ? "Marcado: O valor é subtraído imediatamente do saldo em conta." 
+          : "Desmarcado: Fica apenas registrado como 'Previsto / A pagar', sem alterar seu saldo atual até você efetivar.";
+      }
+    }
+
+    function quickSettleTransaction(id) {
+      const t = appData.transactions.find(tx => tx.id === id);
+      if (!t) return;
+      if (confirm(`Deseja efetivar a transação "${t.description}" de ${formatBRL(t.amount)} e atualizar o saldo da sua conta agora?`)) {
+        t.isSettled = true;
+        if (t.type === 'receita') {
+          appData.balance += t.amount;
+        } else {
+          appData.balance -= t.amount;
+        }
+        saveUserData();
+        renderAll();
+        showToast("Transação efetivada e saldo atualizado com sucesso!");
+      }
+    }
+
+    function openEditModal(id) {
+      const t = appData.transactions.find(tx => tx.id === id);
+      if (!t) return;
+
+      document.getElementById('edit-tx-id').value = t.id;
+      document.getElementById('edit-tx-type').value = t.type;
+      document.getElementById('edit-tx-desc').value = t.description;
+      document.getElementById('edit-tx-amount').value = t.amount;
+      document.getElementById('edit-tx-date').value = t.date;
+
+      const isSettled = t.isSettled !== false;
+      document.getElementById('edit-tx-is-settled').checked = isSettled;
+
+      const catGroup = document.getElementById('edit-cat-group');
+      const subGroup = document.getElementById('edit-subtype-group');
+      const settledLabel = document.getElementById('edit-settled-label');
+
+      if (t.type === 'receita') {
+        catGroup.classList.add('hidden');
+        subGroup.classList.remove('hidden');
+        document.getElementById('edit-tx-subtype').value = t.subType || 'Serviço';
+        settledLabel.textContent = "Já caiu na conta (Adicionar ao saldo)";
+      } else {
+        catGroup.classList.remove('hidden');
+        subGroup.classList.add('hidden');
+        document.getElementById('edit-tx-category').value = t.category || 'Compras';
+        settledLabel.textContent = "Já foi debitado / pago (Subtrair do saldo)";
+      }
+
+      document.getElementById('modal-edit-tx').classList.add('open');
+    }
+
+    function handleEditSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-tx-id').value;
+      const t = appData.transactions.find(tx => tx.id === id);
+      if (!t) return;
+
+      const newDesc = document.getElementById('edit-tx-desc').value.trim();
+      const newAmount = parseFloat(document.getElementById('edit-tx-amount').value);
+      const newDate = document.getElementById('edit-tx-date').value;
+      const newIsSettled = document.getElementById('edit-tx-is-settled').checked;
+
+      if (!newDesc || isNaN(newAmount) || newAmount <= 0 || !newDate) {
+        alert("Preencha todos os campos corretamente.");
+        return;
+      }
+
+      // Reverter o impacto anterior no saldo (se estava efetivado)
+      if (t.isSettled !== false) {
+        if (t.type === 'receita') {
+          appData.balance -= t.amount;
+        } else {
+          appData.balance += t.amount;
+        }
+      }
+
+      // Aplicar os novos dados
+      t.description = newDesc;
+      t.amount = newAmount;
+      t.date = newDate;
+      t.isSettled = newIsSettled;
+
+      if (t.type === 'receita') {
+        t.subType = document.getElementById('edit-tx-subtype').value;
+      } else {
+        t.category = document.getElementById('edit-tx-category').value;
+      }
+
+      // Aplicar o novo impacto no saldo (se estiver efetivado)
+      if (newIsSettled) {
+        if (t.type === 'receita') {
+          appData.balance += newAmount;
+        } else {
+          appData.balance -= newAmount;
+        }
+      }
+
+      saveUserData();
+      closeModals();
+      renderAll();
+      showToast("Transação atualizada com sucesso!");
+    }
+
     function openIncomeModal(isRecurrentDefault = false) {
       document.getElementById('modal-income').classList.add('open');
       const recCheckbox = document.getElementById('income-is-recurrent');
@@ -2263,6 +2626,19 @@
 
     function openSettingsModal() {
       document.getElementById('cfg-initial-balance').value = appData.balance;
+      if (currentUser) {
+        const pwdInput = document.getElementById('cfg-current-password');
+        if (pwdInput) {
+          pwdInput.value = currentUser.password || "••••••••";
+          pwdInput.type = "password";
+          const icon = document.getElementById('eye-icon-cfg');
+          if (icon) {
+            icon.innerHTML = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>`;
+          }
+        }
+        const newPwdInput = document.getElementById('cfg-new-password');
+        if (newPwdInput) newPwdInput.value = "";
+      }
       document.getElementById('modal-settings').classList.add('open');
     }
 
@@ -2270,6 +2646,7 @@
       document.getElementById('modal-income').classList.remove('open');
       document.getElementById('modal-expense').classList.remove('open');
       document.getElementById('modal-settings').classList.remove('open');
+      const mEdit = document.getElementById('modal-edit-tx'); if (mEdit) mEdit.classList.remove('open');
     }
 
     function toggleIncomeRecurrenceDayInput() {
@@ -2324,7 +2701,12 @@
         return;
       }
 
-      appData.balance += amount;
+      const isSettled = document.getElementById('income-is-settled') ? document.getElementById('income-is-settled').checked : true;
+
+      // Só adiciona ao saldo se estiver efetivado
+      if (isSettled) {
+        appData.balance += amount;
+      }
 
       const newTx = {
         id: 'tx-' + Date.now(),
@@ -2334,6 +2716,7 @@
         description: isRecurrent ? `Crédito: ${desc}` : desc,
         amount: amount,
         date: date,
+        isSettled: isSettled,
         isAuto: false
       };
 
@@ -2374,7 +2757,12 @@
         return;
       }
 
-      appData.balance -= amount;
+      const isSettled = document.getElementById('expense-is-settled') ? document.getElementById('expense-is-settled').checked : true;
+
+      // Só debita do saldo se estiver efetivado
+      if (isSettled) {
+        appData.balance -= amount;
+      }
 
       const newTx = {
         id: 'tx-' + Date.now(),
@@ -2384,6 +2772,7 @@
         description: desc,
         amount: amount,
         date: date,
+        isSettled: isSettled,
         isAuto: false
       };
 
@@ -2407,6 +2796,50 @@
       setupFormDates();
       renderAll();
       showToast(`Gasto de ${formatBRL(amount)} debitado do saldo!`);
+    }
+
+    async function handleChangePassword() {
+      const newPwd = document.getElementById("cfg-new-password").value.trim();
+      if (!newPwd || newPwd.length < 4) {
+        alert("A nova senha deve ter no mínimo 4 caracteres.");
+        return;
+      }
+
+      if (typeof IS_API_MODE !== 'undefined' && IS_API_MODE) {
+        try {
+          const res = await fetch("/api/auth/change-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id: currentUser.id, new_password: newPwd })
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            alert(data.error || "Erro ao alterar senha.");
+            return;
+          }
+          currentUser.password = newPwd;
+          localStorage.setItem("finapp_saved_user_obj", JSON.stringify(currentUser));
+          document.getElementById("cfg-current-password").value = newPwd;
+          document.getElementById("cfg-new-password").value = "";
+          showToast("Senha alterada com sucesso na nuvem!");
+          return;
+        } catch(err) {
+          alert("Erro de conexão ao alterar senha na nuvem.");
+          return;
+        }
+      }
+
+      currentUser.password = newPwd;
+      const users = getUsers();
+      const idx = users.findIndex(u => u.id === currentUser.id || u.username === currentUser.username);
+      if (idx !== -1) {
+        users[idx].password = newPwd;
+        saveUsers(users);
+      }
+      localStorage.setItem("finapp_saved_user_obj", JSON.stringify(currentUser));
+      document.getElementById("cfg-current-password").value = newPwd;
+      document.getElementById("cfg-new-password").value = "";
+      showToast("Sua senha foi alterada com sucesso!");
     }
 
     function handleSettingsSubmit(e) {
@@ -2441,10 +2874,12 @@
       if (idx !== -1) {
         const t = appData.transactions[idx];
         if (confirm(`Deseja excluir a transação "${t.description}" de ${formatBRL(t.amount)}?`)) {
-          if (t.type === 'receita') {
-            appData.balance -= t.amount;
-          } else {
-            appData.balance += t.amount;
+          if (t.isSettled !== false) {
+            if (t.type === 'receita') {
+              appData.balance -= t.amount;
+            } else {
+              appData.balance += t.amount;
+            }
           }
           appData.transactions.splice(idx, 1);
           saveUserData();

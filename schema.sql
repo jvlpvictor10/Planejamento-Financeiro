@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS transactions (
     amount REAL NOT NULL,
     tx_date DATE NOT NULL,
     is_auto INTEGER DEFAULT 0,
+    is_settled INTEGER DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
